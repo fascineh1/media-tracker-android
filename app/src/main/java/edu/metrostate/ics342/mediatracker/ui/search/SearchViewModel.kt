@@ -1,25 +1,27 @@
 package edu.metrostate.ics342.mediatracker.ui.search
 
 import androidx.lifecycle.ViewModel
+import edu.metrostate.ics342.mediatracker.data.fakeSearchResults
+import edu.metrostate.ics342.mediatracker.data.model.Media
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class MediaItem(
-    val id: Int,
-    val title: String,
-    val subtitle: String
-)
-
 class SearchViewModel : ViewModel() {
 
-    private val _results = MutableStateFlow(
-        listOf(
-            MediaItem(1, "Dune", "Frank Herbert"),
-            MediaItem(2, "Inception", "Christopher Nolan"),
-            MediaItem(3, "Severance", "Dan Erickson"),
-            MediaItem(4, "Last of the Mohicans", "Michael Mann")
-        )
-    )
+    private val pageSize = 20
+    private var currentPage = 1
 
+    private val _results = MutableStateFlow<List<Media>>(
+        fakeSearchResults.take(pageSize)
+    )
     val results = _results.asStateFlow()
+
+    fun loadNextPage() {
+        val nextItems = fakeSearchResults.take((currentPage + 1) * pageSize)
+
+        if (nextItems.size > _results.value.size) {
+            currentPage++
+            _results.value = nextItems
+        }
+    }
 }
