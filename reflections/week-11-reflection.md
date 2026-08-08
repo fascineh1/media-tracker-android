@@ -63,8 +63,7 @@ I also commented on the repository's API error handling because parsing the back
      Estimated time
      Notes
 -Priority count updates correctly (for example, 3/5).
--Fixed crashes caused by duplicate L
-azyColumn keys.
+-Fixed crashes caused by duplicate LazyColumn keys.
 -Fixed missing mediaId request errors by correcting the request mapping.
 -Added unit tests for the Priorities ViewModel.
 
