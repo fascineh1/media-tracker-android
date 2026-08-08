@@ -10,9 +10,8 @@
 
 ## Commits This Week
 
-<!-- Paste a link to your commits for this week. -->
 
-**Link:**
+**Link:*https://github.com/fascineh1/media-tracker-android/pull/11*
 
 ---
 
@@ -36,10 +35,8 @@ I also noticed that the repository includes dedicated functions such as addQuote
 This makes the networking layer easier to maintain and debug.
 
 ### Comments I Left
---> Nice job keeping the Quotes feature organized. I like that you separated the Quote model, 
-request object, and repository methods instead of combining them together. 
-The dedicated addQuote() and getQuotes() functions make the repository easy to read, and the error parsing should make debugging API issues much easier.
----
+--> I commented on Issa's separation of the Quotes networking code into dedicated models, request classes, and repository functions. I noted that keeping API operations such as addQuote() and getQuotes() in the repository instead of the UI helps maintain separation of concerns and makes the feature easier to test and maintain. 
+I also commented on the repository's API error handling because parsing the backend error response into a meaningful message makes failures easier to debug and gives the UI more useful information to display.
 
 ## Bonus Feature Progress
 
@@ -66,7 +63,8 @@ The dedicated addQuote() and getQuotes() functions make the repository easy to r
      Estimated time
      Notes
 -Priority count updates correctly (for example, 3/5).
--Fixed crashes caused by duplicate LazyColumn keys.
+-Fixed crashes caused by duplicate L
+azyColumn keys.
 -Fixed missing mediaId request errors by correcting the request mapping.
 -Added unit tests for the Priorities ViewModel.
 
@@ -82,10 +80,9 @@ After debugging the request objects and repository logic, those issues were reso
 
 ## One Thing I Understood More Deeply
 
---> This week helped me better understand how data flows through an Android MVVM application. I learned how the Repository, ViewModel, Retrofit API interface, and Compose UI all work together. 
-I also gained more experience debugging backend API requests by reading server error messages and tracing problems through the networking layer.
-
----
+--> This week helped me understand more deeply how data moves through the different layers of an Android MVVM application. 
+For the Priorities feature, the Compose UI sends user actions to PrioritiesViewModel, the ViewModel updates its UI state and calls the repository, and the repository communicates with the backend through the Retrofit GET /priorities and PUT /priorities endpoints. Debugging the missing mediaId request also helped me see how an incorrect request model or mapping can cause a feature that looks correct in the UI to fail at the API layer. 
+Tracing that problem from the server response back through the repository and ViewModel made the relationship between these layers much clearer to me.
 
 ## One Thing I'm Still Confused About
 
