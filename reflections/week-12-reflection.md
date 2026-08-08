@@ -30,8 +30,9 @@ Issa separated the API models, Retrofit service, and repository logic, which kee
 I also noticed that error handling was centralized in the repository, making the implementation easier to maintain.
 
 ### Comments I Left
---> I commented that the Quotes feature was implemented cleanly and that keeping the Retrofit API calls inside the repository instead of the UI improves maintainability and testing. 
-I also noted that the overall architecture is consistent with the rest of the application.
+--> I commented that keeping the Retrofit API calls inside the repository instead of the UI layer makes the Quotes feature easier to maintain and test. 
+I also noted that separating the request models, Retrofit service, and repository responsibilities keeps the networking implementation consistent with the rest of the application's architecture. 
+Centralizing the error handling in the repository was another positive design choice because the UI does not need to duplicate API error-handling logic.
 ---
 
 ## Bonus Feature — Final Status before Week 14? 
