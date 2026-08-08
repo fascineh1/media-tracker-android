@@ -55,12 +55,10 @@ Remaining issues are limited to minor UI polish and do not block the feature.
 
 ## One Thing I Understood More Deeply
 
--->Across these two weeks, I gained a better understanding of how a feature moves through multiple layers of an Android application instead of existing only in the UI. The Priorities feature required me to connect the Compose UI, ViewModel state, repository, Retrofit API calls, and server data together.
-I especially understood the importance of keeping the UI state synchronized with the server. For example, when priorities are reordered, the UI can update immediately, but the new `orderIndex` values still need to be persisted through the repository. 
-I also learned why optimistic updates need rollback behavior. 
-If the API request fails, the ViewModel should restore the previous order instead of leaving the UI showing data that was never successfully saved.
-Building the feature from start to finish helped me understand the relationship between UI behavior, application state, networking, persistence, and testing much more clearly
-
+--> Across the two-week sprint, I understood more deeply how UI state, the ViewModel, and repository persistence need to work together when building a complete feature. 
+The drag-and-drop reordering made this especially clear. When movePriority() changes the order, the ViewModel immediately updates the list and recalculates each item's orderIndex, then sends the updated list to the repository. 
+This makes the UI feel responsive, but it also means the ViewModel needs to preserve the previous state in case the API request fails. If saving fails, the previous priority order is restored instead of leaving the UI showing an order that was never persisted. 
+Building the feature from start to finish helped me understand that a feature is not complete just because the UI works; the UI state, API persistence, error handling, and tests all have to agree.
 ---
 
 ## One Thing I'm Still Confused About
