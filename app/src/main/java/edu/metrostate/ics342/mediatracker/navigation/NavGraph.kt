@@ -63,14 +63,25 @@ fun MediaTrackerNavGraph(navController: NavHostController) {
             composable(Routes.REGISTER) {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate(Routes.ACTIVITY_FEED) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.REGISTER) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
                         }
                     },
-                    onNavigateToLogin = { navController.popBackStack() }
+                    onNavigateToLogin = {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.REGISTER) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
-
             composable(Routes.ACTIVITY_FEED) {
                 ActivityFeedScreen(
                     onMediaClick = { mediaId -> navController.navigate("media_detail/$mediaId") },
@@ -90,11 +101,16 @@ fun MediaTrackerNavGraph(navController: NavHostController) {
                 )
             }
 
-            composable(route = Routes.MEDIA_DETAIL) {
+            composable(
+                route = Routes.MEDIA_DETAIL,
+                arguments = listOf(navArgument("mediaId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val mediaId = backStackEntry.arguments?.getInt("mediaId") ?: return@composable
+
                 MediaDetailScreen(
-                    mediaId        = -1,
+                    mediaId = mediaId,
                     onNavigateBack = { navController.popBackStack() },
-                    onWriteReview  = { mediaId -> navController.navigate("write_review/$mediaId") }
+                    onWriteReview = { id -> navController.navigate("write_review/$id") }
                 )
             }
 
