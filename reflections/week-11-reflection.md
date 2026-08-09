@@ -17,8 +17,6 @@
 
 ## Code Review
 
-<!-- Code review continues as normal — same pod rotation, regardless of which bonus feature you or your pod mate are building. -->
-
 **Reviewed:** *Issa Ali*
 **Link to my review:*https://github.com/Issa-Ismail-Ali/media-tracker-android/commit/ab945e17d52adb4ce0f4fa93baa92cf76c08f21d#r195295347*
 
