@@ -16,44 +16,135 @@ There is no page minimum. There is a quality minimum. A response that takes two 
 
 ## Part 1 — Your App
 
-**1a. Open your final pull request on GitHub. Find the commit that you are most proud of — not the largest, not the last one, the one that meant the most to you. Paste the commit URL here and explain why you chose it. What did it take to get there? What was broken before and what worked after?**
+**1a. Open your final pull request on GitHub. Find the commit that you are most proud of — not the largest, not the last one, the one that meant the most to you. 
+Paste the commit URL here and explain why you chose it. What did it take to get there? What was broken before and what worked after?**
+
+Commit URL: https://github.com/fascineh1/media-tracker-android/commit/fa51ff87b9760843596619e06cb27c7cd0c5603
 
 > Your answer:
-
+> 
+--> The commit I am most proud of is my Week 11 commit, “Implement Priorities bonus feature (Week 1).” 
+I chose this commit because it was more than adding another screen. 
+I had to connect several parts of the application together, including the priority model, repository, ViewModel, UI, navigation, and tests. 
+This commit added PrioritiesScreen, PriorityEditorDialog, PrioritiesViewModel, and PrioritiesViewModelTest, along with the data structures needed to support the feature.
+What made this meaningful to me was learning how to manage state when the user changes the order of items. 
+Earlier in the semester, I was mostly focused on getting individual screens to display correctly. With this feature, I had to think about what happens when the UI changes, how that change gets saved, and what should happen if saving fails. The feature eventually supported optimistic updates and rollback behavior, so the interface could respond immediately while still recovering if the repository operation failed. 
+Getting that working made me feel much more comfortable working across the UI, ViewModel, repository, and test layers instead of treating them as separate pieces.
 ---
 
 **1b. Name one screen in your app that you think is genuinely well-built. Not perfect — well-built. Explain specifically why: what design decisions did you make, what did you refactor, and how does it differ from how you would have approached it in week 2?**
 
 > Your answer:
 
+--> I think the Search screen is one of the better-built screens in my app. 
+One reason is that I eventually separated the responsibilities between SearchScreen.kt and SearchViewModel instead of putting most of the behavior directly inside the Composable. 
+The screen became responsible mainly for displaying the UI and reacting to state, while the ViewModel handled the search-related logic and data.
+I also worked with search results containing books, movies, and TV shows and dealt with filtering and pagination. 
+This made the screen more than just a text field and a list. 
+I had to think about how the UI would behave as the search query changed and as more results became available.
+
+In week 2, I probably would have tried to solve everything directly inside the Composable because my main goal at that point was just getting something to appear and work on the emulator. 
+By the time I worked on Search, I understood better why separating UI from state and logic matters. The screen became easier to read and changes to the search behavior did not require putting more and more logic into the UI.
 ---
 
 **1c. Name one screen or feature that you are not satisfied with. What is wrong with it? If you had one more week, what specifically would you change?**
 
 > Your answer:
 
+--> The feature I am least satisfied with is the authentication and account registration flow. 
+I was able to build the Create Account and Login screens and connect them to RegisterViewModel, DefaultUserRepository, Retrofit, and the API, but this part of the project gave me several problems.
+One of the biggest problems was registration returning errors even though the form itself was working correctly. 
+I eventually used Logcat to see responses such as 401 and INVALID_CLIENT_CREDENTIALS. 
+That showed me that the UI was not necessarily the problem and that I also had to trace the request through RegisterViewModel, DefaultUserRepository, ApiConstants, BuildConfig, local.properties, Retrofit, and finally the backend.
+If I had another week, I would clean up the entire authentication flow and make the error handling more specific. Instead of showing a generic "Something went wrong" message for several different failures, I would make sure network failures, invalid client credentials, duplicate accounts, and incorrect user credentials are handled separately. 
+I would also add more tests around registration and login, so I would not have to depend as much on manually testing the forms in the emulator.
+Admittedly, authentication is the feature I am least satisfied with.
 ---
 
 ## Part 2 — A Specific Bug
 
-**2a. Describe the hardest bug you fixed this semester. Not the most recent one — the one that took the longest or cost you the most confusion. What was the symptom? What did you think the problem was at first? What was it actually? How did you find it?**
+**2a. Describe the hardest bug you fixed this semester. Not the most recent one — the one that took the longest or cost you the most confusion. 
+What was the symptom? What did you think the problem was at first? What was it actually? How did you find it?**
 
 > Your answer:
-
+> 
+--> One of the hardest bugs I fixed involved navigating to the Media Detail screen. 
+The symptom was that I could navigate toward the detail screen, but the screen was not receiving the ID of the media item that I selected. 
+At first, I was focused on the MediaDetailScreen itself because I thought the problem was with how the screen loaded the media. 
+After tracing the navigation code, I realized the real problem was in NavGraph.kt.
+I had registered the media-detail route, but I was not extracting the mediaId argument from the navigation back stack. 
+I was actually passing -1 as the mediaId to MediaDetailScreen. That meant the destination had no way to know which real media item the user selected.
+I found the problem by following the value from the navigation call into the destination and checking how MediaDetailScreen received its ID. The fix was to declare mediaId as an integer navigation argument, retrieve it from backStackEntry.arguments, and pass that value into the screen. After making that change, the selected item's actual ID followed the navigation route correctly. 
+I also changed the review navigation to use the ID passed through the callback instead of relying on the wrong value.
 ---
 
-**2b. Copy and paste the specific lines of code you changed to fix it. (This can be a before/after comparison, a diff, or just the relevant snippet.) Explain in plain English what the fix does and why it works.**
+**2b. Copy and paste the specific lines of code you changed to fix it. (This can be a before/after comparison, a diff, or just the relevant snippet.) 
+Explain in plain English what the fix does and why it works.**
 
 > Your answer (include code):
+> 
+Before:
+> composable(route = Routes.MEDIA_DETAIL) {
+MediaDetailScreen(
+mediaId = -1,
+onNavigateBack = { navController.popBackStack() },
+onWriteReview = { mediaId ->
+navController.navigate("write_review/$mediaId")
+}
+)
+}
+> 
+After:
+composable(
+route = Routes.MEDIA_DETAIL,
+arguments = listOf(
+navArgument("mediaId") { type = NavType.IntType }
+)
+) { backStackEntry ->
+val mediaId =
+backStackEntry.arguments?.getInt("mediaId")
+?: return@composable
 
+    MediaDetailScreen(
+        mediaId = mediaId,
+        onNavigateBack = { navController.popBackStack() },
+        onWriteReview = { id ->
+            navController.navigate("write_review/$id")
+        }
+    )
+}
+
+The important change was replacing the hard-coded mediaId = -1 with the actual integer stored in the navigation route. navArgument("mediaId") tells Navigation Compose that the route expects an integer argument. 
+The backStackEntry then gives the destination access to that argument. 
+I retrieve it with getInt("mediaId") and pass the real value to MediaDetailScreen.
+
+I also changed the review callback from using mediaId to using the id supplied to onWriteReview. 
+This made the data flow more explicit. The fix taught me that declaring a parameter in a route is not enough by itself. 
+The destination also has to retrieve that argument and pass it to the screen that needs it.
 ---
 
 ## Part 3 — What You Actually Learned
 
-**3a. Pick the concept from this semester that took the longest to actually understand — not just to implement, but to understand. Describe what you thought it was before you understood it, what changed, and how you would explain it now to a student who was exactly where you were at the start of the semester.**
+**3a. Pick the concept from this semester that took the longest to actually understand — not just to implement, but to understand. 
+Describe what you thought it was before you understood it, what changed, and how you would explain it now to a student who was exactly where you were at the start of the semester.**
 
 > Your answer:
 
+--> The concept that took me the longest to understand was state and where it should live in a Compose application. 
+At the beginning of the semester, I understood state mostly as a variable that changed something on the screen. 
+If I needed a button, text field, or list to change, my first thought was to keep the value close to that UI component.
+
+What changed was working with ViewModels, StateFlow, repositories, and Compose together. 
+I started understanding that the more important question is not just "How do I change this value?" but "Who should own this value?" 
+A screen can display state without being responsible for all the logic that produces it. 
+The ViewModel can manage UI state and communicate with the repository, while the Composable observes that state and displays it.
+
+The Priorities feature made this much clearer to me because changing the order of a list affected several layers. 
+The UI needed to change immediately, the ViewModel needed to keep track of the new order, and the repository needed to save it. 
+If saving failed, the ViewModel also needed to restore the previous state.
+
+If I were explaining this to someone starting the class, I would tell them not to think of Compose as just building screens. 
+Think about the direction the data travels. The UI sends an event to the ViewModel, the ViewModel decides what should happen, and updated state comes back to the UI.
 ---
 
 **3b. Your weekly reflections had a "Still Confused" section. Look back at your early reflections — weeks 1 through 4. Find something you wrote that you were confused about then. Are you still confused about it? If not, when and how did it click? If you still are, say so honestly and describe what the sticking point is.**
@@ -62,12 +153,26 @@ There is no page minimum. There is a quality minimum. A response that takes two 
 
 > Your answer:
 
+--> One thing I remember being confused about during the first part of the semester was the purpose of the ViewModel and how much logic should be inside a Composable versus the ViewModel. 
+Early on, it seemed easier to put logic directly into the screen because I could immediately see the result.
+I am much less confused about that now. It started clicking as the screens became more complicated. 
+Search was one example because I separated SearchScreen.kt from SearchViewModel. Later, features such as Library and Priorities made the reason for that separation much more obvious.
+The Priorities feature probably made it click the most. PrioritiesScreen should not have to know how to save priorities or what to do when a repository operation fails. 
+It should display the state and send actions such as moving an item. PrioritiesViewModel can then decide how to update the state and communicate with the repository.
+
+I still sometimes have to stop and decide whether something belongs in the Composable or ViewModel, 
+but now I understand the question I should be asking: is this presentation/UI behavior, or is it application state and business logic?
 ---
 
 **3c. Name one thing a pod mate said, asked, or showed you during a code review or work session that changed how you approached something. It doesn't have to be a big thing. What was it, and what did it change?**
 
 > Your answer:
 
+--> One thing that affected how I approached the project came from reviewing Kenan Port's work during Week 6. 
+I reviewed his FakeSearchResults.kt, which had a larger variety of books, movies, and TV shows. Seeing that data made me think differently about testing Search.
+Instead of testing a screen with only a few items and assuming it worked, having a larger dataset made it possible to see whether filtering and pagination actually behaved correctly. I also noticed that putting too much fake data into one file could eventually make the project harder to maintain, and I suggested separating it into collections or files as it grew.
+That review changed how I thought about fake data. I originally thought of mock data mostly as placeholders until the real API worked. 
+After that, I started seeing it as something that could be intentionally designed to test edge cases and UI behavior.
 ---
 
 ## Part 4 — Your Bonus Feature
@@ -76,12 +181,24 @@ There is no page minimum. There is a quality minimum. A response that takes two 
 
 > Your answer:
 
+--> My bonus feature is called Priorities. It gives a user a way to organize the media they care about most instead of treating everything in their library as equally important. 
+For example, someone might have several books, movies, or shows they want to get to, but there may be three that they want to finish first. 
+The Priorities feature lets them create that ordered list and change the order when their plans change. A user can also store information related to the priority, such as estimated time and notes. 
+The reason someone would want the feature is that a large media library can tell you what you saved, but a priority list helps tell you what you actually want to do next.
 ---
 
 **4b. What was the technically hardest part of building it? Name a specific function, flow, or data structure that gave you trouble, and explain what the problem was.**
 
 > Your answer:
 
+--> The technically hardest part was the reordering flow in PrioritiesViewModel, especially handling optimistic updates correctly. 
+When the user moves a priority, I wanted the list to respond immediately instead of making the user wait for the repository operation to finish.
+That created another problem: what happens if the UI changes successfully but saving the new order fails? I needed to preserve the previous order before changing the state. 
+The ViewModel could then display the reordered list immediately and attempt to save it through the repository. 
+If that operation threw an exception, it had to restore the previous list.
+
+This was more difficult than simply moving an item in a Kotlin list because there were really two states to think about: what the user currently sees and what has 
+successfully been persisted. Getting those two states to stay consistent, especially during failure, was the hardest part of the feature.
 ---
 
 **4c. Your bonus feature has tests. Open the test file and paste the test you think is most valuable — the one that would catch the most important failure. Explain what it proves and what it does not prove.**
@@ -133,6 +250,14 @@ fun `failed reorder restores previous order`() = runTest {
     )
 }
 
+This is the most valuable test to me because it tests the failure case of the optimistic update instead of only testing the successful case. 
+The test starts with priorities in the order 1, 2, 3. It then simulates repository.updatePriorities() failing with a network exception.
+After movePriority(0, 2) is called, the test first verifies that the UI immediately becomes 2, 3, 1. 
+That proves the optimistic part of the update works. After the failed repository operation finishes, it verifies that the order returns to 1, 2, 3.
+
+What this test proves is that a failed save does not leave the ViewModel displaying an order that was never successfully persisted. 
+What it does not prove is that the actual UI renders the items correctly or that a real backend successfully saves the order. 
+This is a ViewModel test using a mocked repository, so UI behavior and the real network integration would require separate tests.
 ---
 
 ## Part 5 — Looking Forward
@@ -141,12 +266,27 @@ fun `failed reorder restores previous order`() = runTest {
 
 > Your answer:
 
+--> If I continued developing MediaTracker, I would focus next on finishing and strengthening the real backend integration. 
+A lot of the project used FakeMediaRepository and mock data while we developed the screens. 
+I would want the complete experience to work with real accounts and persistent data so that a user could sign in on another device and still have their library, priorities, reviews, profile, and connections.
+
+I would especially improve authentication because that was one of the areas where I ran into problems with Retrofit, API credentials, and network errors. 
+I would also improve loading and error states throughout the app. 
+At this point I think that would improve the application more than simply adding another screen because it would connect the features we already built into a more complete application.
 ---
 
 **5b. A friend tells you they want to learn Android development. Based specifically on your experience this semester — not what you've read, what you lived — what is the one thing you would tell them to understand before they write a single line of code?**
 
 > Your answer:
 
+--> I would tell them to understand state and data flow before worrying about how many screens they can build. 
+That is the biggest lesson I learned from this semester.
+At the beginning, I was mostly thinking about whether a screen looked right and whether tapping a button caused something to happen. 
+As the application grew, most of the difficult problems were not about drawing a button or text field. 
+They were about where data came from, who owned it, what happened when it changed, how one screen passed information to another, and what happened when a network or repository operation failed.
+
+Once I understood the relationship between a Composable, ViewModel, StateFlow, repository, and API, the structure of the application made much more sense. 
+I would tell someone starting Android development to learn that flow early because it will save them a lot of confusion later.
 ---
 
 ## Grading
